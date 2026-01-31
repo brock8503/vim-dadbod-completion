@@ -104,7 +104,24 @@ let s:clickhouse = {
 \   'count_parser': function('s:count_parser', [0]),
 \ }
 
+let s:bigquery_partition_query = "SELECT CONCAT(table_catalog, '.', table_schema, '.', table_name) FROM {db_tbl_name}.INFORMATION_SCHEMA.COLUMN_FIELD_PATHS GROUP BY 1 ORDER BY 1 DESC"
+let s:bigquery_table_column_query = "SELECT table_schema, field_path as column_name FROM {db_pt_name}.INFORMATION_SCHEMA.COLUMN_FIELD_PATHS"
+let s:bigquery = {
+\   'args': [''],
+\   'partition_query': { table -> substitute(s:bigquery_partition_query, '{db_tbl_name}', table, '')},
+\   'column_query': '',
+\   'count_column_query': '',
+\   'table_column_query': { partition -> substitute(s:bigquery_table_column_query, '{db_pt_name}', partition, '')},
+\   'schemas_query': '',
+\   'schemas_parser': function('s:map_and_filter', ['\t']),
+\   'quote': ['', ''],
+\   'should_quote': function('s:should_quote', [['reserved_word', 'space']]),
+\   'column_parser': function('s:map_and_filter', ['|']),
+\   'count_parser': function('s:count_parser', [0]),
+\ }
+
 let s:schemas = {
+      \ 'bigquery': s:bigquery,
       \ 'postgres': s:postgres,
       \ 'postgresql': s:postgres,
       \ 'mysql': s:mysql,
