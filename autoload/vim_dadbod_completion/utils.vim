@@ -1,9 +1,10 @@
-let s:disable_notifications = get(g:, 'vim_dadbod_completion_disable_notifications', get(g:, 'db_ui_disable_info_notifications', 0))
+let s:writefile = get(g:, 'vim_dadbod_completion_debug_file', 0)
 
 function! vim_dadbod_completion#utils#msg(msg) abort
-  if s:disable_notifications
+  echom 'writefile'
+  echom s:writefile
+  if s:writefile == 0
     return
   endif
-  redraw!
-  echom printf('[dadbod completion] %s', a:msg)
+  call writefile(a:msg, s:writefile)
 endfunction

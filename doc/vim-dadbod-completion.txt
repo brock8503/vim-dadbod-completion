@@ -99,57 +99,54 @@ HOW IT WORKS                                  *vim-dadbod-completion-how_it_work
 SETTINGS                                          *vim-dadbod-completion-settings*
 
 :
-					      *g:vim_dadbod_completion_mark*
+                                              *g:vim_dadbod_completion_mark*
 g:vim_dadbod_completion_mark
-		Mark for completion items. To change it, add this to vimrc
+                Mark for completion items. To change it, add this to vimrc
 >
-		let g:vim_dadbod_completion_mark = 'MYMARK'
+                let g:vim_dadbod_completion_mark = 'MYMARK'
 <
 
-		Default value: `[DB]`
+                Default value: `[DB]`
 
-					      *g:vim_dadbod_completion_source_limits*
+                                              *g:vim_dadbod_completion_source_limits*
 g:vim_dadbod_completion_source_limits
-		Completion items are fetched from multiple sources.
-		Each source is by default limited to maximum of `200` entries.
-		Example configuration:
+                Completion items are fetched from multiple sources.
+                Each source is by default limited to maximum of `200` entries.
+                Example configuration:
 >
-		let g:vim_dadbod_completion_source_limits = {
-		    \ 'schemas': 150,
-		    \ 'tables': 100,
-		    \ 'columns': 120,
-		    \ 'reserved_words': 140,
-		    \ 'functions': 50
-		    \ }
+                let g:vim_dadbod_completion_source_limits = {
+                    \ 'schemas': 150,
+                    \ 'tables': 100,
+                    \ 'columns': 120,
+                    \ 'reserved_words': 140,
+                    \ 'functions': 50
+                    \ }
 <
-		NOTE: `functions` source is currently available only for `PostgreSQL`
-		and it returns list of sql functions available in the
-		database.
-		Source type that is not in the configuration variable defaults
-		to `200`.
+                NOTE: `functions` source is currently available only for `PostgreSQL`
+                and it returns list of sql functions available in the
+                database.
+                Source type that is not in the configuration variable defaults
+                to `200`.
 
-		Default value: `{}`
+                Default value: `{}`
 
-					      *g:vim_dadbod_completion_lowercase_keywords*
+                                              *g:vim_dadbod_completion_lowercase_keywords*
 g:vim_dadbod_completion_lowercase_keywords
-		Use lower case for keywords completions. Add this to vimrc
+                Use lower case for keywords completions. Add this to vimrc
 >
-		let g:vim_dadbod_completion_lowercase_keywords = 1
+                let g:vim_dadbod_completion_lowercase_keywords = 1
 <
 
-		Default value: `0`
+                Default value: `0`
 
-					      *g:vim_dadbod_completion_disable_notifications*
-g:vim_dadbod_completion_disable_notifications
-		Disable notifications.
+                                              *g:vim_dadbod_completion_debug_file*
+g:vim_dadbod_completion_debug_file
+                Disable notifications.
 >
-		let g:vim_dadbod_completion_disable_notifications = 1
+                let g:vim_dadbod_completion_debug_file =
+                '~/vim-dadbod-comp.log'
 <
-
-		NOTE: vim-dadbod-ui configuration option `let g:db_ui_disable_info_notifications = 1`
-		also disables the notification in this plugin.
-
-		Default value: `0`
+                Default value: `0`
 
 --------------------------------------------------------------------------------
 COMMANDS                                          *vim-dadbod-completion-commands*

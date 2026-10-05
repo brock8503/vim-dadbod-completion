@@ -1,7 +1,7 @@
 let s:reserved_words = ['inner', 'outer', 'left', 'right', 'join', 'where', 'on', 'from', 'as']
 let s:quotes = vim_dadbod_completion#schemas#get_quotes_rgx()
 let s:alias_rgx = printf(
-      \ '\(%s\)\?\(\w\+\)\(%s\)\?\(%s\)\@<!\s\+\(as\s\+\)\?\(%s\)\?\(\w\+\)\(%s\)\?',
+      \ '\%(%s\)\?\(\k\+\%(-\k\+\)*\%(\.\k\+\%(-\k\+\)*\)*\)\%(%s\)\?\%(%s\)\@<!\s\+\%(as\s\+\)\?\%(%s\)\?\(\w\+\)\%(%s\)\?',
       \ s:quotes.open,
       \ s:quotes.close,
       \ join(s:reserved_words, '\|'),
@@ -16,10 +16,14 @@ function! vim_dadbod_completion#alias_parser#parse(bufnr, tables) abort
     return result
   endif
 
+  echom "s:alias_rgx " . s:alias_rgx
+
   let aliases = []
   for line in content
-    call substitute(line, s:alias_rgx, '\=add(aliases, [submatch(2), submatch(7)])', 'g')
+    call substitute(line, s:alias_rgx, '\=add(aliases, [submatch(1), submatch(2)])', 'g')
   endfor
+
+  echom "aliases " . join(aliases, ", ")
 
   for [tbl, alias] in aliases
     if !empty(alias) && index(a:tables, tbl) > -1 && index(s:reserved_words, tolower(alias)) ==? -1

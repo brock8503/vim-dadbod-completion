@@ -14,6 +14,23 @@ let s:mapped_reserved_words = map(copy(vim_dadbod_completion#reserved_keywords#g
       \ {'word': word, 'abbr': word, 'menu': s:mark, 'info': 'SQL reserved word', 'kind': 'R' }
       \ })
 
+function! s:bq(db, partitions) abort
+  call filter(a:partitions, 'v:val !=# ""')
+  let modified = map(uniq(a:partitions[1:]), function('s:map_item', ['string', 'table', 'T']))
+  let s:cache[a:db].tables = extend(s:cache[a:db].tables, modified)
+  call sort(s:cache[a:db].tables, {a, b -> (a.word ==# b.word) ? 0 : (a.word ># b.word ? 1 : -1)})
+  let s:cache[a:db].tables_list = extend(s:cache[a:db].tables_list, copy(a:partitions[1:]))
+  call sort(s:cache[a:db].tables_list)
+endfunction
+
+function! s:process_bq_table_name(db, val) abort
+  let [query, stdin] = s:generate_query(a:db, 'partition_query', a:val)
+  " Add the partitions as if they were tables for autocompletion
+  call vim_dadbod_completion#job#run(query, function('s:bq', [a:db]), stdin)
+  return a:val
+endfunction
+
+"https://github.com/kristijanhusak/vim-dadbod-completion/blob/a8dac0b3cf6132c80dc9b18bef36d4cf7a9e1fe6/autoload/vim_dadbod_completion.vim#L8-L20
 function! vim_dadbod_completion#omni(findstart, base)
   let line = getline('.')[0:col('.') - 2]
   let current_char = getline('.')[col('.') - 2]
@@ -135,6 +152,14 @@ function! vim_dadbod_completion#omni(findstart, base)
 
   let columns = columns[0:s:limit('columns')]
 
+  echom "bind_params: " join(bind_params, ",")
+  echom "reserved_words: " join(reserved_words, ",")
+  echom "schemas: " join(schemas, ",")
+  echom "tables: " join(tables, ",")
+  echom "aliases: " join(aliases, ",")
+  echom "columns: " join(columns, ",")
+  echom "functions: " join(functions, ",")
+
   return s:quote_results(bind_params + reserved_words + schemas + tables + aliases + columns + functions)
 endfunction
 
@@ -156,7 +181,7 @@ function vim_dadbod_completion#clear_cache() abort
   if index(s:filetypes, &filetype) > -1
     call vim_dadbod_completion#utils#msg('Reloading completion for current buffer...')
     call vim_dadbod_completion#fetch(bufnr(''))
-    call vim_dadbod_completion#utils#msg('Reloading completion for current buffer...Done.')
+    cal#utils#msg('Reloading completion for current buffer...Done.')
   endif
 endfunction
 
@@ -224,17 +249,25 @@ function! s:save_to_cache(bufnr, db, table, dbui) abort
         \ 'scheme': {}
         \ }
 
+  let scheme = vim_dadbod_completion#schemas#get(s:buffers[a:bufnr].scheme)
+  let s:cache[a:db].scheme = scheme
+
   if empty(s:cache[a:db].tables)
     let tables = db#adapter#call(a:db, 'tables', [a:db], [])
-    let s:cache[a:db].tables = uniq(tables)
-    let s:cache[a:db].tables_list = copy(s:cache[a:db].tables)
-    call map(s:cache[a:db].tables, function('s:map_item', ['string', 'table', 'T']))
+    if len(g:bigquery_host_targets) > 0
+      let s:cache[a:db].tables = map(uniq(tables), {idx, val -> g:bigquery_host_targets[0] . '.' . val})
+      let s:cache[a:db].tables_list = copy(s:cache[a:db].tables)
+      call map(s:cache[a:db].tables, function('s:map_item', ['string', 'table', 'T']))
+      call map(copy(s:cache[a:db].tables), {idx, val -> s:process_bq_table_name(a:db, val.word)})
+    else
+      let s:cache[a:db].tables = uniq(tables)
+      let s:cache[a:db].tables_list = copy(s:cache[a:db].tables)
+      call map(s:cache[a:db].tables, function('s:map_item', ['string', 'table', 'T']))
+    endif
   elseif type(s:cache[a:db].tables[0]) ==? type('')
     call map(s:cache[a:db].tables, function('s:map_item', ['string', 'table', 'T']))
   endif
 
-  let scheme = vim_dadbod_completion#schemas#get(s:buffers[a:bufnr].scheme)
-  let s:cache[a:db].scheme = scheme
   if !empty(scheme)
     let ccq = s:generate_query(a:db, 'count_column_query')
     call vim_dadbod_completion#job#run(ccq[0], function('s:count_columns_and_cache', [a:db]), ccq[1])
@@ -447,3 +480,4 @@ endfunction
 function! vim_dadbod_completion#refresh_deoplete() abort
   return get(g:, 'vim_dadbod_completion_refresh_deoplete', 0)
 endfunction
+
